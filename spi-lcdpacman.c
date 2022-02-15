@@ -28,12 +28,26 @@
 #include "pacman2.h"
 
 // 入力ボタンのビット定義
+#ifdef PIMORONI_PICOSYSTEM
+#define GPIO_KEYUP 23
+#define GPIO_KEYLEFT 22
+#define GPIO_KEYRIGHT 21
+#define GPIO_KEYDOWN 20
+#define GPIO_KEYSTART 18
+#define GPIO_KEYFIRE 19
+
+#define SOUNDPORT 11
+#else
 #define GPIO_KEYUP 0
 #define GPIO_KEYLEFT 1
 #define GPIO_KEYRIGHT 2
 #define GPIO_KEYDOWN 3
 #define GPIO_KEYSTART 4
 #define GPIO_KEYFIRE 5
+
+#define SOUNDPORT 6
+#endif
+
 #define KEYUP (1<<GPIO_KEYUP)
 #define KEYLEFT (1<<GPIO_KEYLEFT)
 #define KEYRIGHT (1<<GPIO_KEYRIGHT)
@@ -41,8 +55,6 @@
 #define KEYSTART (1<<GPIO_KEYSTART)
 #define KEYFIRE (1<<GPIO_KEYFIRE)
 #define KEYSMASK (KEYUP|KEYLEFT|KEYRIGHT|KEYDOWN|KEYSTART|KEYFIRE)
-
-#define SOUNDPORT 6
 
 #define clearscreen() LCD_Clear(0)
 
@@ -516,7 +528,7 @@ void gameinit4(void)
 void keycheck()
 {
 	// ボタンチェックし、壁でなければパックマンの向き変更
-	unsigned short k;
+	unsigned int k;
 	unsigned char d;
 	unsigned short x,y;
 
@@ -1910,14 +1922,13 @@ void main() {
 	pwm_slice_num = pwm_gpio_to_slice_num(SOUNDPORT);
 	pwm_set_wrap(pwm_slice_num, PWM_WRAP-1);
 	// duty 50%
-	pwm_set_chan_level(pwm_slice_num, PWM_CHAN_A, PWM_WRAP/2);
+	pwm_set_gpio_level(SOUNDPORT, PWM_WRAP/2);
 
 	// 液晶用ポート設定
-    // Enable SPI 0 at 40 MHz and connect to GPIOs
-    spi_init(SPICH, 40000 * 1000);
-    gpio_set_function(PICO_DEFAULT_SPI_RX_PIN, GPIO_FUNC_SPI);
-    gpio_set_function(PICO_DEFAULT_SPI_SCK_PIN, GPIO_FUNC_SPI);
-    gpio_set_function(PICO_DEFAULT_SPI_TX_PIN, GPIO_FUNC_SPI);
+    // Enable SPI 0 and connect to GPIOs
+    spi_init(SPICH, LCD_SPI_FREQ);
+    gpio_set_function(LCD_SCK, GPIO_FUNC_SPI);
+    gpio_set_function(LCD_TX, GPIO_FUNC_SPI);
 
 	gpio_init(LCD_CS);
 	gpio_put(LCD_CS, 1);
@@ -1929,9 +1940,18 @@ void main() {
 	gpio_put(LCD_RESET, 1);
 	gpio_set_dir(LCD_RESET, GPIO_OUT);
 
+#ifdef LCD_BACKLIGHT
+	gpio_init(LCD_BACKLIGHT);
+	gpio_set_dir(LCD_BACKLIGHT, GPIO_OUT);
+	gpio_put(LCD_BACKLIGHT, 1);
+#endif
+
 	init_graphic(); //液晶利用開始
+
+#ifndef PIMORONI_PICOSYSTEM
 	LCD_WriteComm(0x37); //画面中央にするためスクロール設定
 	LCD_WriteData2(272);
+#endif
 
 	highscore=1000;
 	gameinit(); //ゲーム全体初期化
