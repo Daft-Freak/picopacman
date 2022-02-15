@@ -25,3 +25,5 @@ target_link_libraries(lcd-pacman pico_stdlib hardware_spi hardware_pwm)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(lcd-pacman)
+
+pico_set_program_name(lcd-pacman "PACMAN for Raspberry Pi Pico")
