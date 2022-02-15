@@ -35,6 +35,7 @@
 #define GPIO_KEYDOWN 20
 #define GPIO_KEYSTART 18
 #define GPIO_KEYFIRE 19
+#define GPIO_KEYMUTE 17
 
 #define SOUNDPORT 11
 #else
@@ -148,8 +149,12 @@ unsigned char scenedata[MAPXSIZE*MAPYSIZE]={
 
 #define PWM_WRAP 4000 // 125MHz/31.25KHz
 uint pwm_slice_num;
+bool sound_enabled = true;
 
 void sound_on(uint16_t f){
+	if(!sound_enabled)
+		return;
+
 	pwm_set_clkdiv_int_frac(pwm_slice_num, f>>4, f&15);
 	pwm_set_enabled(pwm_slice_num, true);
 }
@@ -536,6 +541,18 @@ void gameinit4(void)
 
 void keycheck()
 {
+#ifdef GPIO_KEYMUTE
+	static bool last_mute_val = true;
+	bool mute_val = gpio_get(GPIO_KEYMUTE);
+
+	if(!mute_val && last_mute_val) {
+		sound_enabled = !sound_enabled;
+		if(!sound_enabled)
+			pwm_set_enabled(pwm_slice_num, false);
+	}
+	last_mute_val = mute_val;
+#endif
+
 	// ボタンチェックし、壁でなければパックマンの向き変更
 	unsigned int k;
 	unsigned char d;
