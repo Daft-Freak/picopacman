@@ -21,6 +21,7 @@
 #define LCD_DC 9
 #define LCD_RESET 4
 #define LCD_BACKLIGHT 12
+#define LCD_VSYNC 8
 #define LCD_SPI_FREQ 62500 * 1000
 #else
 #define LCD_SCK PICO_DEFAULT_SPI_SCK_PIN

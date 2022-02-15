@@ -158,6 +158,15 @@ void sound_off(void){
 }
 
 void wait60thsec(unsigned short n){
+#ifdef LCD_VSYNC
+	if(n == 1) {
+		// sync to 60Hz refresh rate
+		while(gpio_get(LCD_VSYNC));
+		while(!gpio_get(LCD_VSYNC));
+		return;
+	}
+#endif
+
 	// 60分のn秒ウェイト
 	uint64_t t=to_us_since_boot(get_absolute_time())%16667;
 	sleep_us(16667*n-t);
@@ -1944,6 +1953,11 @@ void main() {
 	gpio_init(LCD_BACKLIGHT);
 	gpio_set_dir(LCD_BACKLIGHT, GPIO_OUT);
 	gpio_put(LCD_BACKLIGHT, 1);
+#endif
+
+#ifdef LCD_VSYNC
+	gpio_init(LCD_VSYNC);
+	gpio_set_dir(LCD_VSYNC, GPIO_IN);
 #endif
 
 	init_graphic(); //液晶利用開始

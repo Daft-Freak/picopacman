@@ -92,6 +92,11 @@ void LCD_Init()
 	// really st7789, but the commands for updating the screen are the same
 	// TODO: steal more of the init from one of the SDKs?
 
+	LCD_WriteComm(0x35); // TEON
+	LCD_WriteComm(0x44); // STE
+	LCD_WriteData(0x00);
+	LCD_WriteData(0xDC); // 220 (a bit early)
+
 	LCD_WriteComm(0x3A); // COLMOD
 	LCD_WriteData(0x55);
 
